@@ -40,7 +40,7 @@ class Rundeck():
             allow_redirects=False)
         return r.cookies['JSESSIONID']
 
-    def __request(self, method, url, params=None):
+    def __request(self, method, url, params=None, data=None):
         logger.info('{} {} Params: {}'.format(method, url, params))
         cookies = {'JSESSIONID': self.auth_cookie}
         h = {
@@ -49,7 +49,7 @@ class Rundeck():
             'X-Rundeck-Auth-Token': self.token
         }
         r = requests.request(
-            method, url, cookies=cookies, headers=h, json=params,
+            method, url, cookies=cookies, headers=h, json=params, data=data,
             verify=self.verify
         )
         logger.debug(r.content)
@@ -63,7 +63,7 @@ class Rundeck():
     def __get(self, url, params=None):
         return self.__request('GET', url, params)
 
-    def __post(self, url, params=None):
+    def __post(self, url, params=None, data=None):
         return self.__request('POST', url, params)
 
     def __delete(self, url, params=None):
@@ -90,6 +90,10 @@ class Rundeck():
     def system_info(self):
         url = '{}/system/info'.format(self.API_URL)
         return self.__get(url)
+
+    def disable_scheduling(self, job_id):
+	url = '{}/job/{}/schedule/disable'.format(self.API_URL, job_id)
+	return self.__post(url)
 
     def set_active_mode(self):
         url = '{}/system/executions/enable'.format(self.API_URL)
@@ -147,6 +151,73 @@ class Rundeck():
     def run_job_by_name(self, name, *args, **kwargs):
         job = self.get_job(name)
         return self.run_job(job['id'], *args, **kwargs)
+
+    def import_job(self, project=None, content_type=None, fileformat=None, dupeOption=None, uuidOption=None):
+	print("executed import method")
+	params = {
+            'Content-Type': content_type,
+	    'fileformat': fileformat,
+	    'dupeOption': dupeOption,
+	    'uuidOption': uuidOption
+        }
+	url = '{}/project/{}/jobs/import'.format(self.API_URL, project)        
+        return self.__post(url, params=params, data=xmlBatch)
+
+    def import_job_token(self, method, url, params=None, data=None):
+        logger.info('{} {} Params: {}'.format(method, url, params))        
+        h = {            
+            'Content-Type': 'application/xml',
+            'X-Rundeck-Auth-Token': 'vg1S2KqXFWIrWMLXSolBL3WwLFqLxRfQ'
+        }     
+	xml='<joblist><job><description></description><executionEnabled>true</executionEnabled><id>184f67b8-bb82-4b62-a267-247528c5a85d</id><loglevel>INFO</loglevel><name>testa</name><sequence><command><exec>echo</exec></command></sequence><uuid>184f67b8-bb82-4b62-a267-247528c5a85d</uuid></job></joblist>'
+	#r = requests.request('POST', 'http://cortex-external-di-7162-8.big.dev.scmspain.io:4440/api/20/project/test/jobs/imports', cookies=cookies, headers=h, data=xml)
+	r = requests.post('http://cortex-external-di-7162-8.big.dev.scmspain.io:4440/api/20/project/test/jobs/import', headers=h, data=xml)
+	
+	#xml_file="testo.xml"
+	#headers={'Content-Type':'application/xml'}
+	#with open(xml_file) as xml:
+	#	r = requests.request(method, 'http://cortex-external-di-7162-8.big.dev.scmspain.io:4440/api/20/project/text/jobs/imports', cookies=cookies, headers=h, data=xml)
+	print (r.content)
+
+    def import_job_auth(self, project, job, fileformat=None, dupeOption=None, uuidOption=None ):
+	url = '{}/project/{}/jobs/import'.format(self.API_URL, project)
+        logger.info('{} {} Params: {}'.format(project, job, fileformat, dupeOption, uuidOption))	
+        cookies = {'JSESSIONID': self.auth_cookie}
+        h = {            
+            'Content-Type': 'application/xml',
+	    'fileformat': fileformat,
+	    'dupeOption': dupeOption,
+	    'uuidOption': uuidOption
+            #'X-Rundeck-Auth-Token': 'vg1S2KqXFWIrWMLXSolBL3WwLFqLxRfQ'#self.token
+        }     
+	#job='<joblist><job><description></description><executionEnabled>true</executionEnabled><id>184f67b8-bb82-4b62-a267-247528c5a85d</id><loglevel>INFO</loglevel><name>testa</name><sequence><command><exec>echo</exec></command></sequence><uuid>184f67b8-bb82-4b62-a267-247528c5a85d</uuid></job></joblist>'
+	#r = requests.request('POST', 'http://cortex-external-di-7162-8.big.dev.scmspain.io:4440/api/20/project/test/jobs/imports', cookies=cookies, headers=h, data=xml)
+	r = requests.post(url, headers=h, cookies=cookies, data=job)
+	
+	#xml_file="testo.xml"
+	#headers={'Content-Type':'application/xml'}
+	#with open(xml_file) as xml:
+	#	r = requests.request(method, 'http://cortex-external-di-7162-8.big.dev.scmspain.io:4440/api/20/project/text/jobs/imports', cookies=cookies, headers=h, data=xml)
+	print (r.content)
+	
+    def import_project_auth(self, definition, params=None, data=None):
+	url = '{}/projects'.format(self.API_URL)
+        logger.info('{} Params: {}'.format( definition, params))	
+        cookies = {'JSESSIONID': self.auth_cookie}
+        h = {            
+            'Content-Type': 'application/json',            
+        }     	
+	r = requests.post(url, headers=h, cookies=cookies, data=definition)		
+	print (r.content)
+
+    def export_job(self, project=None, fileformat=None, idlist=None):
+	print("executed export method")
+	params = {
+            'format': fileformat,
+	    'idlist': idlist
+        }
+	url = '{}/project/{}/jobs/export'.format(self.API_URL, project)
+        return self.__post(url, params=params)
 
     def get_executions_for_job(self, job_id=None, job_name=None):
         # http://rundeck.org/docs/api/#getting-executions-for-a-job
