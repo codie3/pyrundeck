@@ -163,41 +163,17 @@ class Rundeck():
 	url = '{}/project/{}/jobs/import'.format(self.API_URL, project)        
         return self.__post(url, params=params, data=xmlBatch)
 
-    def import_job_token(self, method, url, params=None, data=None):
-        logger.info('{} {} Params: {}'.format(method, url, params))        
-        h = {            
-            'Content-Type': 'application/xml',
-            'X-Rundeck-Auth-Token': 'vg1S2KqXFWIrWMLXSolBL3WwLFqLxRfQ'
-        }     
-	xml='<joblist><job><description></description><executionEnabled>true</executionEnabled><id>184f67b8-bb82-4b62-a267-247528c5a85d</id><loglevel>INFO</loglevel><name>testa</name><sequence><command><exec>echo</exec></command></sequence><uuid>184f67b8-bb82-4b62-a267-247528c5a85d</uuid></job></joblist>'
-	#r = requests.request('POST', 'http://cortex-external-di-7162-8.big.dev.scmspain.io:4440/api/20/project/test/jobs/imports', cookies=cookies, headers=h, data=xml)
-	r = requests.post('http://cortex-external-di-7162-8.big.dev.scmspain.io:4440/api/20/project/test/jobs/import', headers=h, data=xml)
-	
-	#xml_file="testo.xml"
-	#headers={'Content-Type':'application/xml'}
-	#with open(xml_file) as xml:
-	#	r = requests.request(method, 'http://cortex-external-di-7162-8.big.dev.scmspain.io:4440/api/20/project/text/jobs/imports', cookies=cookies, headers=h, data=xml)
-	print (r.content)
-
     def import_job_auth(self, project, job, fileformat=None, dupeOption=None, uuidOption=None ):
 	url = '{}/project/{}/jobs/import'.format(self.API_URL, project)
         logger.info('{} {} Params: {}'.format(project, job, fileformat, dupeOption, uuidOption))	
         cookies = {'JSESSIONID': self.auth_cookie}
-        h = {            
+        h = {
             'Content-Type': 'application/xml',
 	    'fileformat': fileformat,
 	    'dupeOption': dupeOption,
 	    'uuidOption': uuidOption
-            #'X-Rundeck-Auth-Token': 'vg1S2KqXFWIrWMLXSolBL3WwLFqLxRfQ'#self.token
-        }     
-	#job='<joblist><job><description></description><executionEnabled>true</executionEnabled><id>184f67b8-bb82-4b62-a267-247528c5a85d</id><loglevel>INFO</loglevel><name>testa</name><sequence><command><exec>echo</exec></command></sequence><uuid>184f67b8-bb82-4b62-a267-247528c5a85d</uuid></job></joblist>'
-	#r = requests.request('POST', 'http://cortex-external-di-7162-8.big.dev.scmspain.io:4440/api/20/project/test/jobs/imports', cookies=cookies, headers=h, data=xml)
+        }
 	r = requests.post(url, headers=h, cookies=cookies, data=job)
-	
-	#xml_file="testo.xml"
-	#headers={'Content-Type':'application/xml'}
-	#with open(xml_file) as xml:
-	#	r = requests.request(method, 'http://cortex-external-di-7162-8.big.dev.scmspain.io:4440/api/20/project/text/jobs/imports', cookies=cookies, headers=h, data=xml)
 	print (r.content)
 	
     def import_project_auth(self, definition, params=None, data=None):
